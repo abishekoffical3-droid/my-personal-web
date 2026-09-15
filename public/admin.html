@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Admin • Abishek's Memories</title><link rel="stylesheet" href="/admin.css">
+</head>
+<body>
+<div class="bg"></div>
+<main>
+  <section id="login" class="login-card">
+    <div class="mini-logo">✦</div>
+    <p class="eyebrow">ABISHEK'S MEMORIES / ADMIN</p>
+    <h1>Welcome<br><span>back.</span></h1>
+    <p>Private control room for your memories.</p>
+    <form id="loginForm">
+      <input id="username" placeholder="Admin username" autocomplete="username" required>
+      <input id="password" type="password" placeholder="Admin password" autocomplete="current-password" required>
+      <button class="btn primary">Enter dashboard ↗</button>
+      <div id="loginMsg" class="msg"></div>
+    </form>
+  </section>
+
+  <section id="dashboard" class="dashboard hidden">
+    <header class="dash-head">
+      <div><p class="eyebrow">CONTROL ROOM / 01</p><h2>Memory Studio</h2></div>
+      <div class="head-actions"><a class="btn ghost" href="/">View website ↗</a><button id="logout" class="btn danger">Logout</button></div>
+    </header>
+
+    <div class="stats">
+      <div><span>Total</span><strong id="total">0</strong></div>
+      <div><span>Photos</span><strong id="photos">0</strong></div>
+      <div><span>Videos</span><strong id="videos">0</strong></div>
+      <div><span>Private</span><strong id="private">0</strong></div>
+    </div>
+
+    <div class="studio-grid">
+      <section class="panel">
+        <p class="eyebrow">UPLOAD / MEDIA</p><h3>Add a memory</h3>
+        <form id="uploadForm" enctype="multipart/form-data">
+          <label>File<input type="file" name="file" required></label>
+          <div class="two"><label>Type<select name="type"><option value="photo">Photo</option><option value="video">Video</option><option value="voice">Voice</option><option value="document">Document</option></select></label><label>Visibility<select name="visibility"><option value="public">Public</option><option value="private">Private</option></select></label></div>
+          <div class="two"><label>Title<input name="title" placeholder="Memory title"></label><label>Date<input name="date" type="date"></label></div>
+          <label>Album<input name="album" placeholder="Childhood / School / Travel..."></label>
+          <label>Description<textarea name="description" rows="5" placeholder="Write a little about this memory..."></textarea></label>
+          <button class="btn primary">Upload memory ✦</button><div id="uploadMsg" class="msg"></div>
+        </form>
+      </section>
+
+      <section class="panel">
+        <p class="eyebrow">WRITE / STORY</p><h3>Add text memory</h3>
+        <form id="textForm">
+          <label>Title<input name="title" placeholder="e.g. The beginning of my love story" required></label>
+          <div class="two"><label>Date<input name="date" type="date"></label><label>Visibility<select name="visibility"><option value="public">Public</option><option value="private">Private</option></select></label></div>
+          <label>Album<input name="album" placeholder="Love Story / Childhood..."></label>
+          <label>Your story<textarea name="description" rows="11" placeholder="Write your memory here..." required></textarea></label>
+          <button class="btn primary">Save story ✦</button><div id="textMsg" class="msg"></div>
+        </form>
+      </section>
+    </div>
+
+    <section class="panel">
+      <div class="panel-head"><div><p class="eyebrow">CONTENT / MANAGE</p><h3>Your archive</h3></div><button id="refresh" class="btn ghost">Refresh</button></div>
+      <div id="items" class="items"></div>
+    </section>
+
+    <section class="panel">
+      <p class="eyebrow">WEBSITE / SETTINGS</p><h3>Site details</h3>
+      <form id="siteForm">
+        <div class="two"><label>Site name<input name="name"></label><label>Tagline<input name="tagline"></label></div>
+        <label>About<textarea name="about" rows="5"></textarea></label>
+        <label>Contact<textarea name="contact" rows="3"></textarea></label>
+        <div class="two"><label>Instagram<input name="instagram"></label><label>Facebook<input name="facebook"></label></div>
+        <div class="two"><label>YouTube<input name="youtube"></label><label>TikTok<input name="tiktok"></label></div>
+        <button class="btn primary">Save website settings</button><div id="siteMsg" class="msg"></div>
+      </form>
+    </section>
+  </section>
+</main>
+<script src="/admin.js"></script>
+</body>
+</html>

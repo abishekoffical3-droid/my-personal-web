@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Abishek's personal memories archive.">
+  <title>Abishek's Memories</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="ambient ambient-one"></div>
+  <div class="ambient ambient-two"></div>
+
+  <header class="topbar">
+    <a class="brand" href="#home"><span class="brand-dot"></span><span id="brandName">ABISHEK</span></a>
+    <nav>
+      <a href="#home">Home</a>
+      <a href="#gallery">Gallery</a>
+      <a href="#videos">Videos</a>
+      <a href="#albums">Albums</a>
+      <a href="#voices">Voices</a>
+      <a href="#text">Text</a>
+      <a href="#private">Private</a>
+      <a href="#about">About</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <a class="admin-link" href="/admin.html">Admin</a>
+  </header>
+
+  <main>
+    <section id="home" class="hero section">
+      <div class="hero-copy reveal">
+        <p class="eyebrow">MY LIFE • MY MEMORIES • MY STORY</p>
+        <h1 id="heroName">Abishek's<br><span>Memories.</span></h1>
+        <p id="heroTagline" class="hero-text">A place where yesterday stays alive.</p>
+        <div class="hero-actions">
+          <a class="btn primary" href="#gallery">Explore memories <span>↗</span></a>
+          <a class="btn ghost" href="#about">My story</a>
+        </div>
+      </div>
+      <div class="hero-card reveal">
+        <div class="hero-card-inner">
+          <div class="hero-symbol">✦</div>
+          <p>Every moment<br>becomes a memory.</p>
+          <span>ARCHIVE / 01</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="gallery" class="section">
+      <div class="section-head reveal">
+        <div><p class="eyebrow">01 / VISUAL MEMORIES</p><h2>Gallery</h2></div>
+        <p>Little moments, kept forever.</p>
+      </div>
+      <div id="galleryGrid" class="memory-grid"></div>
+    </section>
+
+    <section id="videos" class="section">
+      <div class="section-head reveal"><div><p class="eyebrow">02 / MOVING MEMORIES</p><h2>Videos</h2></div><p>Moments that move.</p></div>
+      <div id="videoGrid" class="memory-grid"></div>
+    </section>
+
+    <section id="albums" class="section">
+      <div class="section-head reveal"><div><p class="eyebrow">03 / COLLECTIONS</p><h2>Albums</h2></div><p>Organized chapters of life.</p></div>
+      <div id="albumGrid" class="album-grid"></div>
+    </section>
+
+    <section id="voices" class="section">
+      <div class="section-head reveal"><div><p class="eyebrow">04 / SOUNDS OF LIFE</p><h2>Voices</h2></div><p>Some memories are heard.</p></div>
+      <div id="voiceList" class="voice-list"></div>
+    </section>
+
+    <section id="text" class="section">
+      <div class="section-head reveal"><div><p class="eyebrow">05 / WRITTEN MEMORIES</p><h2>Text</h2></div><p>Stories, thoughts and chapters.</p></div>
+      <div id="textGrid" class="text-grid"></div>
+    </section>
+
+    <section id="private" class="section private-section">
+      <div class="private-card reveal">
+        <div class="lock-icon">⌁</div>
+        <p class="eyebrow">06 / PERSONAL ARCHIVE</p>
+        <h2>Private Memories</h2>
+        <p>Some stories are meant for a smaller circle. Unlock the private archive to view protected photos and texts.</p>
+        <div id="privateForm">
+          <input id="privatePassword" type="password" placeholder="Enter private password" autocomplete="current-password">
+          <button class="btn primary" id="unlockBtn">Unlock archive</button>
+        </div>
+        <p id="privateMsg" class="form-msg"></p>
+      </div>
+      <div id="privateGrid" class="memory-grid hidden"></div>
+    </section>
+
+    <section id="about" class="section split-section">
+      <div class="reveal"><p class="eyebrow">07 / ABOUT</p><h2>The story<br>behind the archive.</h2></div>
+      <div class="about-copy reveal"><p id="aboutText">Loading...</p></div>
+    </section>
+
+    <section id="contact" class="section contact-section">
+      <div class="section-head reveal"><div><p class="eyebrow">08 / CONNECT</p><h2>Contact & Socials</h2></div></div>
+      <div class="contact-box reveal">
+        <p id="contactText"></p>
+        <div id="socials" class="socials"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer><span>© <span id="year"></span> Abishek's Memories</span><span>Built for memories that matter.</span></footer>
+
+  <div id="modal" class="modal hidden">
+    <button class="modal-close" id="modalClose">×</button>
+    <div id="modalContent" class="modal-content"></div>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
