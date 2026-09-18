@@ -1,139 +1,26 @@
 let allItems = [];
-let site = {};
-
 const $ = (s) => document.querySelector(s);
 const esc = (v) => String(v ?? "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
-
-async function api(url, options={}) {
-  const r = await fetch(url, options);
-  const data = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(data.error || "Request failed");
-  return data;
+async function api(url, options = {}) { const r = await fetch(url, options); const d = await r.json().catch(() => ({})); if (!r.ok) throw Error(d.error || "Request failed"); return d; }
+function media(item) {
+  const src = item.mediaUrl || "";
+  if (item.type === "photo") return src ? `<img src="${esc(src)}" alt="${esc(item.title)}" loading="lazy">` : `<span class="media-placeholder">✦</span>`;
+  if (item.type === "video") return src ? `<video src="${esc(src)}" controls preload="metadata"></video>` : `<span class="media-placeholder">◉</span>`;
+  if (item.type === "voice") return src ? `<audio controls src="${esc(src)}"></audio>` : `<span class="media-placeholder">◒</span>`;
+  if (item.type === "document") return `<span class="media-placeholder">▤</span>`;
+  return `<span class="media-placeholder">✎</span>`;
 }
-
-function mediaHTML(item) {
-  if (item.type === "photo") return `<img src="/uploads/${encodeURIComponent(item.filename)}" alt="${esc(item.title)}" loading="lazy">`;
-  if (item.type === "video") return `<video src="/uploads/${encodeURIComponent(item.filename)}" controls preload="metadata"></video>`;
-  if (item.type === "voice") return `<div style="font-size:48px">🎙️</div>`;
-  if (item.type === "document") return `<div style="font-size:48px">📄</div>`;
-  return `<div style="font-size:48px">✦</div>`;
-}
-
-function card(item) {
-  return `<article class="memory-card">
-    ${item.visibility === "private" ? '<span class="private-tag">PRIVATE</span>' : ''}
-    <div class="media">${mediaHTML(item)}</div>
-    <div class="card-body">
-      <div class="card-meta">${esc(item.date)} ${item.album ? "• " + esc(item.album) : ""}</div>
-      <div class="card-title">${esc(item.title)}</div>
-      <div class="card-desc">${esc(item.description).slice(0,180)}</div>
-      <div class="card-actions">
-        <button class="small-btn" onclick="likeItem('${item.id}', this)">♥ ${item.likes}</button>
-        <button class="small-btn" onclick="comments('${item.id}')">💬 ${item.comments}</button>
-        <button class="small-btn" onclick="downloadItem('${item.id}')">↓ Download</button>
-        ${item.type !== "text" ? `<button class="small-btn" onclick="openItem('${item.id}')">View</button>` : ''}
-      </div>
-    </div>
-  </article>`;
-}
-
-function render(items) {
-  const publicItems = items.filter(i => i.visibility === "public");
-  const photos = publicItems.filter(i => i.type === "photo");
-  const videos = publicItems.filter(i => i.type === "video");
-  const voices = publicItems.filter(i => i.type === "voice");
-  const texts = publicItems.filter(i => i.type === "text");
-
-  $("#galleryGrid").innerHTML = photos.length ? photos.map(card).join("") : empty("No photos yet.");
-  $("#videoGrid").innerHTML = videos.length ? videos.map(card).join("") : empty("No videos yet.");
-  $("#textGrid").innerHTML = texts.length ? texts.map(card).join("") : empty("No written memories yet.");
-
-  $("#voiceList").innerHTML = voices.length ? voices.map(i => `<div class="voice">
-    <div class="voice-icon">◉</div><div class="voice-info"><strong>${esc(i.title)}</strong><small>${esc(i.date)}</small></div>
-    <audio controls src="/uploads/${encodeURIComponent(i.filename)}"></audio>
-    <button class="small-btn" onclick="downloadItem('${i.id}')">↓</button>
-  </div>`).join("") : empty("No voice memories yet.");
-
-  const albums = {};
-  publicItems.forEach(i => {
-    const key = i.album || "Uncategorized";
-    albums[key] = (albums[key] || 0) + 1;
-  });
-  $("#albumGrid").innerHTML = Object.keys(albums).length ? Object.entries(albums).map(([name,count]) =>
-    `<div class="album"><span>${count} memories</span><strong>${esc(name)}</strong></div>`).join("") : empty("Albums will appear after uploads.");
-}
-
-function empty(text){ return `<div class="text-card" style="grid-column:1/-1"><p>${esc(text)}</p></div>`; }
-
-async function refresh() {
-  allItems = await api("/api/content");
-  render(allItems);
-  const privateStatus = await api("/api/private-status");
-  if (privateStatus.unlocked) showPrivate(allItems.filter(i => i.visibility === "private"));
-}
-
-async function likeItem(id, btn) {
-  try {
-    const r = await api(`/api/items/${id}/like`, {method:"POST"});
-    btn.textContent = `♥ ${r.likes}`;
-  } catch(e) { alert(e.message); }
-}
-
-async function comments(id) {
-  try {
-    const comments = await api(`/api/items/${id}/comments`);
-    const list = comments.length ? comments.map(c => `<p><strong>${esc(c.name)}</strong><br>${esc(c.text)}</p>`).join("") : "<p>No comments yet.</p>";
-    const name = prompt("Your name:", "Guest");
-    if (name === null) return;
-    const text = prompt(`Comments (${comments.length})\n\n${comments.map(c=>c.name+": "+c.text).join("\n\n") || "No comments yet."}\n\nWrite a new comment:`);
-    if (text === null || !text.trim()) return;
-    await api(`/api/items/${id}/comments`, {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name,text})});
-    await refresh();
-  } catch(e) { alert(e.message); }
-}
-
-function downloadItem(id){ window.location.href = `/download/${id}`; }
-
-function openItem(id){
-  const item = allItems.find(i=>i.id===id);
-  if(!item) return;
-  $("#modalContent").innerHTML = `
-    ${item.type==="photo" ? `<img src="/uploads/${encodeURIComponent(item.filename)}" alt="">` :
-      item.type==="video" ? `<video src="/uploads/${encodeURIComponent(item.filename)}" controls autoplay></video>` :
-      `<div class="text-card"><h2>${esc(item.title)}</h2><p>${esc(item.description)}</p></div>`}
-    <div class="card-body"><h3>${esc(item.title)}</h3><p class="card-desc">${esc(item.description)}</p></div>`;
-  $("#modal").classList.remove("hidden");
-}
-$("#modalClose").onclick = () => $("#modal").classList.add("hidden");
-$("#modal").addEventListener("click", e => { if(e.target.id==="modal") $("#modal").classList.add("hidden"); });
-
-function showPrivate(items) {
-  $("#privateForm").classList.add("hidden");
-  $("#privateMsg").textContent = "Private archive unlocked.";
-  $("#privateGrid").classList.remove("hidden");
-  $("#privateGrid").innerHTML = items.length ? items.map(card).join("") : empty("No private memories yet.");
-  allItems = allItems.filter(i => i.visibility !== "private").concat(items);
-}
-
-$("#unlockBtn").onclick = async () => {
-  try {
-    await api("/api/private/unlock", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({password:$("#privatePassword").value})});
-    $("#privatePassword").value = "";
-    const items = await api("/api/content");
-    showPrivate(items.filter(i => i.visibility === "private"));
-  } catch(e) { $("#privateMsg").textContent = e.message; }
-};
-
-async function loadSite(){
-  site = await api("/api/site");
-  $("#brandName").textContent = site.name.toUpperCase();
-  $("#heroName").innerHTML = esc(site.name).replace(/(Memories\.?)$/i, "<br><span>$1</span>");
-  $("#heroTagline").textContent = site.tagline;
-  $("#aboutText").textContent = site.about;
-  $("#contactText").textContent = site.contact || "Social links and contact details can be added from the admin panel.";
-  const labels = {instagram:"Instagram",facebook:"Facebook",youtube:"YouTube",tiktok:"TikTok"};
-  $("#socials").innerHTML = Object.entries(site.socials || {}).filter(([,v])=>v).map(([k,v])=>`<a href="${esc(v)}" target="_blank" rel="noopener">${labels[k]||k} ↗</a>`).join("");
-  $("#year").textContent = new Date().getFullYear();
-}
-
-loadSite().then(refresh).catch(e => alert(e.message));
+function card(item) { return `<article class="memory-card"><div class="media">${media(item)}</div><div class="card-body"><div class="card-meta">${esc(item.date)}${item.album ? ` · ${esc(item.album)}` : ""}</div><h3>${esc(item.title)}</h3><p>${esc(item.description).slice(0, 220)}</p><div class="card-actions"><button class="small-btn" onclick="likeItem('${item.id}',this)">♥ ${item.likes || 0}</button><button class="small-btn" onclick="comments('${item.id}')">◌ ${item.comments || 0}</button><button class="small-btn" onclick="shareItem('${item.id}')">↗ Share</button>${item.mediaUrl ? `<button class="small-btn" onclick="downloadItem('${item.id}')">↓</button>` : ""}<button class="small-btn" onclick="openItem('${item.id}')">Open</button></div></div></article>`; }
+function empty(text) { return `<div class="text-card empty-state"><span>✦</span><p>${esc(text)}</p><small>Your next chapter starts here.</small></div>`; }
+function render(items) { const pub = items.filter(i => i.visibility === "public"); const photos = pub.filter(i => i.type === "photo"), videos = pub.filter(i => i.type === "video"), voices = pub.filter(i => i.type === "voice"), texts = pub.filter(i => i.type === "text"); $("#galleryGrid").innerHTML = photos.length ? photos.map(card).join("") : empty("No photos yet."); $("#videoGrid").innerHTML = videos.length ? videos.map(card).join("") : empty("No videos yet."); $("#textGrid").innerHTML = texts.length ? texts.map(card).join("") : empty("No written memories yet."); $("#voiceList").innerHTML = voices.length ? voices.map(card).join("") : empty("No voice memories have been added yet."); const groups = {}; pub.forEach(i => { const k = i.album || "Uncategorized"; groups[k] = (groups[k] || 0) + 1; }); $("#albumGrid").innerHTML = Object.keys(groups).length ? Object.entries(groups).map(([n,c]) => `<div class="album"><span>${c} memories</span><strong>${esc(n)}</strong></div>`).join("") : empty("Albums will appear after uploads."); }
+async function refresh() { allItems = await api("/api/content"); render(allItems); const state = await api("/api/private-status"); if (state.unlocked) showPrivate(allItems.filter(i => i.visibility === "private")); }
+async function likeItem(id, btn) { try { const d = await api(`/api/items/${id}/like`, { method: "POST" }); btn.textContent = `♥ ${d.likes}`; } catch (e) { alert(e.message); } }
+async function comments(id) { try { const existing = await api(`/api/items/${id}/comments`); const name = prompt(`Comments: ${existing.length}\n\n${existing.map(c => `${c.name}: ${c.text}`).join("\n") || "No comments yet."}\n\nYour name:`, "Guest"); if (name === null) return; const text = prompt("Your comment:"); if (!text?.trim()) return; await api(`/api/items/${id}/comments`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, text }) }); await refresh(); } catch (e) { alert(e.message); } }
+async function shareItem(id) { const url = `${location.origin}${location.pathname}#memory-${id}`; try { if (navigator.share) await navigator.share({ title: "A memory", url }); else { await navigator.clipboard.writeText(url); alert("Link copied."); } } catch (_) {} }
+function downloadItem(id) { location.href = `/download/${encodeURIComponent(id)}`; }
+function openItem(id) { const i = allItems.find(x => x.id === id); if (!i) return; $("#modalContent").innerHTML = `<div class="modal-media">${media(i)}</div><div class="card-body"><div class="card-meta">${esc(i.date)} · ${esc(i.album || "Memory")}</div><h2>${esc(i.title)}</h2><p>${esc(i.description)}</p></div>`; $("#modal").classList.remove("hidden"); }
+function showPrivate(items) { $("#privateForm").classList.add("hidden"); $("#privateMsg").textContent = "Private archive unlocked for this session."; $("#privateGrid").classList.remove("hidden"); $("#privateGrid").innerHTML = items.length ? items.map(card).join("") : empty("No private memories yet."); allItems = allItems.filter(i => i.visibility !== "private").concat(items); }
+$("#unlockBtn").onclick = async () => { try { await api("/api/private/unlock", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ password: $("#privatePassword").value }) }); $("#privatePassword").value = ""; const items = await api("/api/content"); showPrivate(items.filter(i => i.visibility === "private")); } catch (e) { $("#privateMsg").textContent = e.message; } };
+$("#modalClose").onclick = () => $("#modal").classList.add("hidden"); $("#modal").onclick = e => { if (e.target.id === "modal") $("#modal").classList.add("hidden"); };
+async function loadSite() { const site = await api("/api/site"); $("#brandName").textContent = (site.name || "Abishek's Memories").toUpperCase(); $("#heroName").innerHTML = esc(site.name || "Abishek's Memories").replace(/(Memories\.?)$/i, "<br><span>$1</span>"); $("#heroTagline").textContent = site.tagline || "A place where yesterday stays alive."; $("#aboutText").textContent = site.about || "Add your introduction from the admin studio."; $("#contactText").textContent = site.contact || "Contact details can be added from the admin studio."; const labels = { instagram: "Instagram", facebook: "Facebook", youtube: "YouTube", tiktok: "TikTok" }; $("#socials").innerHTML = Object.entries(site.socials || {}).filter(([,v]) => v).map(([k,v]) => `<a href="${esc(v)}" target="_blank" rel="noopener">${labels[k] || esc(k)} ↗</a>`).join("") || `<span class="muted">Social links will appear here when added.</span>`; $("#year").textContent = new Date().getFullYear(); }
+loadSite().then(refresh).catch(e => console.error(e));
